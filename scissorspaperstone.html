@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Scissors Paper Stone</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			font-family: sans-serif;
+		}
+
+		body {
+			background: #DDEEFF;
+			overflow: hidden;
+		}
+
+		.intro {
+			text-align: center;
+			margin: 30px;
+			font-size: 50px;
+			display: flex;
+			flex-flow: column;
+			height: 100vh;
+			align-items: center;
+			justify-content: center;
+			opacity: 1;
+			transition: opacity 0.4s ease;
+			z-index: -1;
+		}
+
+		.intro button {
+			font-size: 30px;
+			cursor: pointer;
+			margin-top: 100px;
+			padding: 30px;
+			border-radius: 5px;
+			background: none;
+			background: #BADA55;
+			border: none;
+			cursor: pointer;
+		}
+
+		.score h1 {
+			text-align: center;
+			font-size: 100px;
+			font-weight: 300;
+		}
+
+		.match {
+			position: absolute;
+			top: 10%;
+			left: 0;
+			margin: 0 auto;
+			width: 100vw;
+			transition: opacity 0.4s ease 0.2s;
+		}
+
+		.container {
+			display: grid;
+			grid-template-columns: 1fr 300px 1fr;
+			grid-gap: 40px;
+			justify-content: center;
+			justify-items: center;
+			align-content: center;
+			align-items: center;
+		}
+
+		.container img {
+			margin: 0 auto;
+		}
+
+		.player {
+			display: grid;
+			grid-gap: 20px;
+			align-items: center;
+			align-content: center;
+			text-align: center;
+		}
+
+		.choices {
+			display: grid;
+			grid-template-columns: repeat(3, auto);
+			grid-gap: 40px;
+			justify-content: center;
+			justify-items: center;
+			align-content: center;
+			align-items: center;
+		}
+
+		.choices img {
+			width: 100px;
+			height: 100px;
+		}
+
+		.choices img:hover {
+			cursor: pointer;
+			transform: scale(1.01);
+			transition: all 0.2s;
+		}
+
+		.text-center {
+			text-align: center;
+		}
+
+		#reset_score {
+			cursor: pointer;
+			font-size: 80px;
+		}
+
+		#reset_score:hover {
+			transform:scale(1.05);
+			transition: all 0.2s;
+		}
+
+		.faded {
+			opacity: 0;
+			pointer-events: none;
+		}
+	</style>
+</head>
+<body>
+	<div class="intro">
+		<h1> Scissors Paper Stone </h1>
+		<button> Play </button>
+	</div>
+
+	<div class="match faded">
+		<div class="score">
+			<h1 id="score">0 : 0</h1>
+		</div>
+		<div class="container">
+			<div class="player" id="player1">
+				<img class="player-choice-1" src="paper.png">
+				<h2> Player 1 </h2>
+				<div class="choices">
+					<img src="scissors.png" data-value="scissors" data-player="1">
+					<img src="paper.png" data-value="paper" data-player="1">
+					<img src="stone.png" data-value="stone" data-player="1">
+				</div>
+			</div>
+
+			<div class="outcome text-center">
+				<h1 id="outcome"></h1>
+				<h1 id="reset_score"> &#x21ba </h1>
+			</div>
+
+			<div class="player" id="player2">
+				<img class="player-choice-2" src="paper.png">
+				<h2> Computer </h2>
+				<div class="choices">
+					<img src="scissors.png" data-value="scissors" data-player="2">
+					<img src="paper.png" data-value="paper" data-player="2">
+					<img src="stone.png" data-value="stone" data-player="2">
+				</div>
+			</div>
+		</div>
+	</div>
+
+<script>
+	const choice_buttons = Array.from(document.querySelectorAll(".choices > img")).slice(0,3);
+	const outcome_display = document.querySelector("#outcome");
+	const reset_button = document.querySelector("#reset_score");
+	const intro =  document.querySelector(".intro");
+	const match = document.querySelector(".match");
+	const start_btn = document.querySelector(".intro button");
+
+	start_btn.addEventListener("click", ()=>{
+		intro.classList.add("faded");
+		match.classList.remove("faded");
+	});
+
+	const computer = document.querySelector("#player2");
+	const choices = ["scissors", "paper", "stone"];
+	let scores = {player1: 0, player2: 0};
+	const background_colors = ["#DDEEFF", "#FFEEFF", "#FFEEEE", "#EEEEEE"];
+
+	function computer_select() {
+		const computer_choice = choices[Math.floor(Math.random()*3)];
+		computer.querySelector("img").src = `${computer_choice}.png`;
+		return computer_choice;
+	}
+
+	const wins = {
+		"paper":"stone", // key is possible play, value is what the key wins
+		"stone": "scissors",
+		"scissors":"paper"
+	}
+
+	function comparewin(player1, player2) {
+		if (player1 == player2) {
+			outcome_display.innerText = "Draw";
+		} else if (wins[player1] === player2) { // if player 1 is the key and player 2 is the value, player 1 wins
+			scores["player1"] += 1;
+			outcome_display.innerText = "Player 1 wins";
+		} else {
+			scores["player2"] += 1; // else player 2 wins
+			outcome_display.innerText = "Player 2 wins";
+		}
+	}
+
+	function resetScore() {
+		scores = {player1: 0, player2: 0};
+		outcome_display.innerText = " ";
+		updateScore();
+	}
+
+	function updateScore(winner){
+		document.querySelector("#score").innerText = `${scores["player1"]} : ${scores["player2"]}`;
+	}
+	
+	for (const i in choice_buttons) {
+		choice_buttons[i].addEventListener("click", function(){
+			const player_choice = this.dataset.value;
+			const player = this.dataset.player; // get player and his choice
+			document.querySelector(`.player-choice-${player}`).src = `${player_choice}.png`; // set player's choice picture
+
+			const computer_choice = computer_select(); // computer selects
+			comparewin(player_choice, computer_choice); // see who wins
+			updateScore(); //update score
+			document.body.style.backgroundColor = background_colors[Math.floor(Math.random()*background_colors.length)]; //background change
+		});
+	}
+
+	reset_button.addEventListener("click", resetScore);
+</script>
+</body>
+</html>
